@@ -45,8 +45,12 @@ model, so it runs **fully offline with no API costs and no agent framework**.
 ## ✨ Features
 
 - **🗣️ Interactive chat loop** — type questions, get answers, until you say `exit`.
-- **🧠 Conversation memory** — the full `messages` history is kept, so the agent
-  remembers earlier turns for context.
+- **⌨️ Streaming replies** — answers are printed **token-by-token as they arrive**
+  (via `stream_chat`), for a live typing effect instead of waiting for the full
+  response. Press **Ctrl+C** to stop a reply mid-stream and get your prompt back.
+- **🧠 Conversation memory** — the full `messages` history is kept (your messages,
+  the agent's replies, tool calls, and tool results), so the agent remembers
+  earlier turns for context.
 - **🔧 Tool calling** — the model decides when to call a tool and the agent runs it:
   | Tool | What it does |
   |------|--------------|
@@ -142,17 +146,18 @@ python simple_ai_assistant.py
 Then chat at the prompt:
 
 ```text
-User: what time is it in London?
-Assistant: It's 2026-10-20 20:15:03 BST in London.
+👦🏻 User: what time is it in London?
+🤖 Assistant: It's 2026-10-20 20:15:03 BST in London.
 
-User: how's the weather where I live?
-Assistant: Los Angeles: ☀️ +24°C
+👦🏻 User: how's the weather where I live?
+🤖 Assistant: Los Angeles: ☀️ +24°C
 
-User: exit
+👦🏻 User: exit
 Exiting the assistant. Goodbye!
 ```
 
-Type `exit`, `quit`, `bye`, or `goodbye` to leave.
+Replies stream in live as the model generates them. Type `exit`, `quit`, `bye`,
+or `goodbye` to leave, or press **Ctrl+C** to interrupt a reply that's streaming.
 
 ## 🔄 Control flow
 
@@ -185,12 +190,16 @@ next input.
 ## ⚙️ How it works
 
 1. User input is appended to the running `messages` history.
-2. The agent sends the conversation plus the `TOOLS` schema to the model.
-3. If the model requests tool calls, each is dispatched through `run_tool`
-   ([`tools.py`](tools.py)), and the results are appended to the history.
+2. The agent sends the conversation plus the `TOOLS` schema to the model with
+   `stream=True`. `stream_chat` prints text **token-by-token as it arrives** and
+   reassembles any streamed tool-call fragments into whole calls.
+3. If the model requests tool calls, `build_tool_calls_payload` converts the
+   reassembled calls into the assistant message, each is dispatched through
+   `run_tool` ([`tools.py`](tools.py)), and the results are appended to history.
 4. Steps 2–3 repeat until the model returns a plain answer, or until
    `MAX_STEPS` (5) rounds are used — after which it returns a fallback message.
-5. The final answer is printed and kept in history for context.
+5. The streamed answer is kept in history (as `full_response`) for context.
+   Press **Ctrl+C** to stop a reply mid-stream.
 
 The system prompts keep replies in English and under 100 words — tweak them at
 the top of [`simple_ai_assistant.py`](simple_ai_assistant.py) to change the

@@ -80,12 +80,12 @@ def run_tool(tool_call):
     
     try:
         func_args = json.loads(tool_call.function.arguments or "{}")
-        log(f"   {func_name}({func_args})") # Debug log for function call
+        log(f"🔧 {func_name}({func_args})") # Debug log for function call
         fn = FUNCTION_NAME_TO_FUNCTION_MAP.get(func_name)
         result = fn(**func_args)
     
     except Exception as e:
         result = f"Error whilie running '{func_name}': {str(e)}"
 
-    log(f"   {result}")
+    log(f"   ↳ {result}")
     return str(result)

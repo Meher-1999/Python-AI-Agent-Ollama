@@ -101,6 +101,34 @@ Exiting the assistant. Goodbye!
 
 Type `exit`, `quit`, `bye`, or `goodbye` to leave.
 
+## Control flow
+
+```mermaid
+flowchart TD
+    START([Start]) --> INIT[Initialize<br/>OpenAI client, system prompts,<br/>TOOLS &amp; function mapping]
+    INIT --> LOOP[Start chat loop]
+    LOOP --> INPUT["Get user input<br/>(User: prompt)"]
+    INPUT --> EXIT{"Exit command?<br/>(exit, quit, bye, goodbye)"}
+    EXIT -->|Yes| DONE([Exit])
+    EXIT -->|No| APPEND[Append user message to history]
+    APPEND --> CALL[Call model with TOOLS<br/>client.chat.completions.create]
+    CALL --> TOOLS{"Any tool calls?<br/>(msg.tool_calls)"}
+    TOOLS -->|Yes| ATOOL[Append assistant message<br/>with tool calls]
+    ATOOL --> RUN[For each tool call:<br/>run_tool &rarr; execute mapped function<br/>get_current_time / get_city_weather / get_user_city]
+    RUN --> ARES[Append tool result to history]
+    ARES --> CALL
+    TOOLS -->|No| AMSG[Append assistant message to history]
+    AMSG --> PRINT["Print assistant response<br/>(Assistant: + content)"]
+    PRINT --> INPUT
+    CALL -. step limit reached<br/>MAX_STEPS = 5 .-> FALLBACK[Print fallback message]
+    FALLBACK --> INPUT
+```
+
+The model/tool loop (`Call model` → `Any tool calls?` → run tools → call again) repeats
+up to `MAX_STEPS` (5) times per user question. If the model never returns a plain
+answer within that budget, the assistant prints a fallback message and waits for the
+next input.
+
 ## How it works
 
 1. User input is appended to the running `messages` history.

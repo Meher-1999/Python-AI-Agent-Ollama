@@ -4,19 +4,15 @@
 
 <div align="center">
 
-<!-- Waving gradient banner -->
-<img
-  src="https://capsule-render.vercel.app/api?type=waving&color=0:4b3f91,50:6d4a9f,100:a43d78&height=220&section=header&text=Local%20AI%20Agent&fontSize=62&fontColor=ffffff&fontAlignY=38&desc=Python%20%C2%B7%20Ollama%20%C2%B7%20Tool%20Calling%20%E2%80%94%20built%20from%20scratch&descSize=18&descAlignY=60"
-  alt="Local AI Agent"
-/>
-
-<!-- Animated typing subtitle -->
+<!-- Hand-crafted animated gradient banner (assets/hero.svg) -->
 <a href="https://github.com/Meher-1999/Python-AI-Agent-Ollama">
-  <img
-    src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=24&pause=1200&color=9D8CFF&center=true&vCenter=true&width=720&height=60&lines=No+paid+API+key.+No+agent+framework.;It+remembers%2C+uses+tools+and+chains+them+%F0%9F%94%A7;Built+from+scratch+with+python-ai-agent-ollama;An+AI+agent+that+runs+100%25+on+your+laptop+%F0%9F%92%BB"
-    alt="Typing subtitle"
-  />
+  <img src="assets/hero.svg" alt="Local AI Agent — Python · Ollama · Tool Calling · built from scratch" width="100%"/>
 </a>
+
+<br/><br/>
+
+<!-- Self-made animated, cycling tagline (assets/typing.svg) -->
+<img src="assets/typing.svg" alt="No paid API key · It remembers, uses tools and chains them · Runs 100% on your laptop" width="720"/>
 
 <br/><br/>
 
@@ -228,6 +224,8 @@ snippets — nothing in the main app imports them. See the
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:a43d78,50:6d4a9f,100:4b3f91&height=120&section=footer" alt="footer"/>
+<img src="assets/footer.svg" alt="" width="100%"/>
+
+<sub>Built with 🐍 Python · 🦙 Ollama · ⚡ OpenAI-compatible tool calling — no framework, no cloud, no cost.</sub>
 
 </div>

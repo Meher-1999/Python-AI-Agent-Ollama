@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="1200" height="320" viewBox="0 0 1200 320" fill="none" role="img"
+     aria-label="Local AI Agent — Python, Ollama, Tool Calling, built from scratch">
+  <defs>
+    <!-- Deep background wash -->
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="90%">
+      <stop offset="0%"  stop-color="#241a4d"/>
+      <stop offset="55%" stop-color="#140f2e"/>
+      <stop offset="100%" stop-color="#0b0a16"/>
+    </radialGradient>
+
+    <!-- Animated accent gradient (blue -> violet -> magenta) -->
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"  stop-color="#5b6cff"/>
+      <stop offset="50%" stop-color="#9b5cff"/>
+      <stop offset="100%" stop-color="#e14b9c"/>
+      <animateTransform attributeName="gradientTransform" type="translate"
+                        values="-0.35 0; 0.35 0; -0.35 0" dur="8s" repeatCount="indefinite"/>
+    </linearGradient>
+
+    <linearGradient id="accentSoft" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"  stop-color="#5b6cff" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#9b5cff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#e14b9c" stop-opacity="0.9"/>
+    </linearGradient>
+
+    <!-- Soft glow for the glowing orbs -->
+    <filter id="blur" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="34"/>
+    </filter>
+
+    <filter id="textGlow" x="-20%" y="-40%" width="140%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Rounded clip for the whole card -->
+    <clipPath id="card"><rect x="0" y="0" width="1200" height="320" rx="22"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#card)">
+    <!-- Base -->
+    <rect width="1200" height="320" fill="url(#bgGlow)"/>
+
+    <!-- Floating glow orbs -->
+    <g filter="url(#blur)" opacity="0.55">
+      <circle cx="210" cy="90" r="120" fill="#5b6cff">
+        <animate attributeName="cy" values="90;130;90" dur="9s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.45;0.8;0.45" dur="9s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="980" cy="240" r="140" fill="#e14b9c">
+        <animate attributeName="cy" values="240;200;240" dur="11s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0.85;0.5" dur="11s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="640" cy="30" r="110" fill="#9b5cff">
+        <animate attributeName="cx" values="600;700;600" dur="13s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- Thin top accent line -->
+    <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+
+    <!-- Twinkling stars -->
+    <g fill="#ffffff">
+      <circle cx="120" cy="230" r="2">
+        <animate attributeName="opacity" values="0.1;1;0.1" dur="3s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="330" cy="270" r="1.6">
+        <animate attributeName="opacity" values="0.2;0.9;0.2" dur="4.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="1080" cy="80" r="2.2">
+        <animate attributeName="opacity" values="0.1;1;0.1" dur="3.6s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="860" cy="60" r="1.5">
+        <animate attributeName="opacity" values="0.2;0.8;0.2" dur="5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="1140" cy="250" r="1.8">
+        <animate attributeName="opacity" values="0.15;0.9;0.15" dur="4.6s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- Title -->
+    <text x="600" y="152" text-anchor="middle" filter="url(#textGlow)"
+          font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+          font-size="74" font-weight="800"
+          fill="url(#accent)">Local AI Agent</text>
+
+    <!-- Subtitle -->
+    <text x="600" y="202" text-anchor="middle"
+          font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+          font-size="21" font-weight="500" letter-spacing="1"
+          fill="#c9c6e8">Python&#160;&#160;·&#160;&#160;Ollama&#160;&#160;·&#160;&#160;Tool Calling&#160;&#160;—&#160;&#160;built from scratch</text>
+
+    <!-- Terminal-style tagline chip -->
+    <g>
+      <rect x="418" y="238" width="364" height="40" rx="20" fill="#ffffff" fill-opacity="0.06"
+            stroke="url(#accentSoft)" stroke-opacity="0.6" stroke-width="1.2"/>
+      <circle cx="443" cy="258" r="5" fill="#ff5f56"/>
+      <circle cx="461" cy="258" r="5" fill="#ffbd2e"/>
+      <circle cx="479" cy="258" r="5" fill="#27c93f"/>
+      <text x="500" y="263" text-anchor="start"
+            font-family="'JetBrains Mono','Fira Code', ui-monospace, Menlo, Consolas, monospace"
+            font-size="15" fill="#b9b4e6">100% local · zero API cost</text>
+    </g>
+
+    <!-- Bottom accent line -->
+    <rect x="0" y="316" width="1200" height="4" fill="url(#accent)"/>
+  </g>
+</svg>

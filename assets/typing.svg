@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="64" viewBox="0 0 760 64"
+     fill="none" role="img" aria-label="No paid API key. It remembers, uses tools and chains them. Runs 100% on your laptop.">
+  <defs>
+    <linearGradient id="t" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"  stop-color="#7c86ff"/>
+      <stop offset="50%" stop-color="#b48cff"/>
+      <stop offset="100%" stop-color="#ff7cc4"/>
+      <animateTransform attributeName="gradientTransform" type="translate"
+                        values="-0.3 0; 0.3 0; -0.3 0" dur="6s" repeatCount="indefinite"/>
+    </linearGradient>
+  </defs>
+
+  <g font-family="'JetBrains Mono','Fira Code', ui-monospace, Menlo, Consolas, monospace"
+     font-size="25" font-weight="600" text-anchor="middle" fill="url(#t)">
+
+    <!-- Line 1 -->
+    <text x="380" y="40">No paid API key. No agent framework.
+      <animate attributeName="opacity" dur="12s" repeatCount="indefinite"
+               values="1;1;0;0;0;0;0;0;1" keyTimes="0;0.21;0.25;0.5;0.75;0.8;0.9;0.99;1"/>
+    </text>
+
+    <!-- Line 2 -->
+    <text x="380" y="40">It remembers, uses tools and chains them 🔧
+      <animate attributeName="opacity" dur="12s" repeatCount="indefinite"
+               values="0;0;1;1;0;0;0;0;0" keyTimes="0;0.25;0.27;0.46;0.5;0.75;0.9;0.99;1"/>
+    </text>
+
+    <!-- Line 3 -->
+    <text x="380" y="40">Built from scratch · no agent framework
+      <animate attributeName="opacity" dur="12s" repeatCount="indefinite"
+               values="0;0;1;1;0;0;0;0;0" keyTimes="0;0.5;0.52;0.71;0.75;0.9;0.95;0.99;1"/>
+    </text>
+
+    <!-- Line 4 -->
+    <text x="380" y="40">An AI agent that runs 100% on your laptop 💻
+      <animate attributeName="opacity" dur="12s" repeatCount="indefinite"
+               values="0;0;0;0;1;1;0;0;0" keyTimes="0;0.25;0.5;0.75;0.77;0.96;1;1;1"/>
+    </text>
+  </g>
+
+  <!-- Soft underline accent -->
+  <rect x="250" y="52" width="260" height="2.5" rx="1.25" fill="url(#t)" opacity="0.55">
+    <animate attributeName="opacity" values="0.2;0.7;0.2" dur="2.4s" repeatCount="indefinite"/>
+  </rect>
+</svg>

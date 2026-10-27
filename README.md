@@ -67,16 +67,24 @@ model, so it runs **fully offline with no API costs and no agent framework**.
 
 ```
 Python-AI-Agent-Ollama/
-├── simple_ai_assistant.py   # Entry point: chat loop + tool-calling orchestration
-├── tools.py                 # Tool definitions, implementations, and dispatch
+├── simple_ai_assistant.py       # Entry point: chat loop + streaming tool-calling orchestration
+├── tools.py                     # Tool definitions, implementations, and dispatch
 ├── Utilities/
-│   └── utilities.py         # Debug logging helper (gray DEBUG trace)
-├── Code Snippets/           # Standalone streaming experiments (see its README)
-│   ├── stream_test.py       # Streaming a plain text completion
-│   └── stream_tools_test.py # Streaming + reassembling tool calls
-├── requirements.txt         # Python dependencies
-├── .env.example             # Template for your local .env
-└── .env                     # Your configuration (not committed)
+│   └── utilities.py             # Debug logging helper (gray DEBUG trace)
+├── Code Snippets/               # Standalone experiments — streaming & embeddings (see its README)
+│   ├── README.md                # Guide to the snippets
+│   ├── stream_test.py           # Streaming a plain text completion
+│   ├── stream_tools_test.py     # Streaming + reassembling tool calls
+│   ├── test_embedding.py        # Embeddings API demo (nomic-embed-text)
+│   └── semantic_search_test.py  # Cosine-similarity semantic search (work in progress)
+├── assets/                      # README banner art (animated SVGs)
+│   ├── hero.svg
+│   ├── typing.svg
+│   └── footer.svg
+├── requirements.txt             # Python dependencies
+├── .env.example                 # Template for your local .env
+├── .gitignore                   # Ignores .env, .venv, caches, OS files
+└── .env                         # Your local config — gitignored, never committed
 ```
 
 ## 📦 Requirements

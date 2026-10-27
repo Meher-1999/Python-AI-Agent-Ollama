@@ -213,11 +213,12 @@ agent's behavior.
 
 The agent will then be able to call it automatically when relevant.
 
-## 🧪 Streaming experiments
+## 🧪 Experiments
 
 The [`Code Snippets/`](Code%20Snippets/) folder holds standalone scripts that
-explore the **streaming** side of the OpenAI-compatible API (plain-text
-streaming and reassembling fragmented tool calls). They are learning/reference
+explore the OpenAI-compatible API beyond the main app — **streaming** chat and
+tool calls, plus early **embeddings / semantic search** work using the
+`nomic-embed-text` model (the groundwork for RAG). They are learning/reference
 snippets — nothing in the main app imports them. See the
 [Code Snippets README](Code%20Snippets/README.md) for details.
 

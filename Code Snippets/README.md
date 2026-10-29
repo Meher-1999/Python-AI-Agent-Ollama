@@ -13,6 +13,7 @@ runtime — nothing in the main app imports them.
 | [`stream_tools_test.py`](stream_tools_test.py) | Streaming a **tool-calling** response and reassembling fragmented `tool_calls` from the deltas. |
 | [`test_embedding.py`](test_embedding.py) | Calling the embeddings API (`nomic-embed-text`) on a few sentences and printing a preview of each vector. |
 | [`semantic_search_test.py`](semantic_search_test.py) | Embedding texts and comparing them with cosine similarity — the core idea behind semantic search / RAG retrieval *(work in progress)*. |
+| [`doc_search.py`](doc_search.py) | A full **semantic document search** pipeline over the [`knowledge_base/`](../knowledge_base/) corpus: load docs → embed → cosine-rank a query → return top-k matches (the retrieval half of RAG). |
 
 ## Prerequisites
 
@@ -20,10 +21,12 @@ These scripts reuse the main project's configuration and dependencies:
 
 - Python 3.11+ (developed on 3.14)
 - Packages: `openai`, `python-dotenv` (installed in the project's `.venv`). The
-  embedding snippets (`test_embedding.py`, `semantic_search_test.py`) also need
-  **`numpy`** — `pip install numpy`.
+  embedding snippets (`test_embedding.py`, `semantic_search_test.py`,
+  `doc_search.py`) also need **`numpy`** — `pip install numpy`.
 - A running OpenAI-compatible endpoint (local Ollama by default). The embedding
   snippets need the embedding model pulled: `ollama pull nomic-embed-text`.
+- For `doc_search.py`: the document corpus in [`../knowledge_base/`](../knowledge_base/)
+  (a folder of `.txt` files) and the `KB_FOLDER` env var pointing at it.
 - A `.env` file **in the project root** (`../.env`) with:
 
   ```ini
@@ -31,6 +34,7 @@ These scripts reuse the main project's configuration and dependencies:
   API_KEY=dummy_key
   MODEL=qwen3:4b
   EMBED_MODEL=nomic-embed-text   # used by the embedding snippets
+  KB_FOLDER=knowledge_base       # corpus folder, used by doc_search.py
   ```
 
 > **Important — run from the project root.** Both scripts call `load_dotenv()`,
@@ -46,6 +50,7 @@ These scripts reuse the main project's configuration and dependencies:
 > python "Code Snippets/stream_tools_test.py"
 > python "Code Snippets/test_embedding.py"
 > python "Code Snippets/semantic_search_test.py"
+> python "Code Snippets/doc_search.py"
 > ```
 
 ## `stream_test.py`
@@ -125,6 +130,37 @@ candidates by cosine similarity — the retrieval step at the heart of RAG.
 > texts but doesn't yet embed and compare them end-to-end, so it produces no
 > output on its own. It also needs `numpy` installed and `EMBED_MODEL` set (see
 > Prerequisites).
+
+## `doc_search.py`
+
+The full semantic-search pipeline `semantic_search_test.py` was building toward —
+a runnable **document retrieval** system over the real [`knowledge_base/`](../knowledge_base/)
+corpus (HR, leave, medical, travel, tech docs, etc.). This is the **retrieval
+half of RAG**: given a question, it finds the most relevant documents by meaning.
+
+How it works:
+
+1. **`load_documents(folder=KB_FOLDER)`** — reads every `.txt` file in the corpus
+   folder into `{source, text}` records.
+2. **`add_embeddings(documents)`** — calls `get_embedding()` on each document and
+   stores the resulting vector on the record.
+3. **`get_embedding(text)`** — one embedding via the `EMBED_MODEL` (`nomic-embed-text`).
+4. **`cosine_similarity(A, B)`** — `numpy.dot(A, B) / (‖A‖·‖B‖)`.
+5. **`search(query, documents, top_k=3)`** — embeds the query, scores it against
+   every pre-embedded document, sorts by similarity, and returns the top-k
+   `{score, source, text, size}` matches.
+6. A `test()` helper prints the ranked results, and the script runs a sample
+   query (*"How many days will I get for maternity leave?"*) end-to-end.
+
+**Key idea:** embed the corpus once, then answer a query by embedding it and
+ranking documents by cosine similarity — exactly the retrieval step a RAG agent
+runs before feeding the top matches to the chat model. This snippet does the
+**retrieve**; it does not yet generate an answer or wire into the agent.
+
+> **Standalone for now.** `doc_search.py` is not imported by the main app — it
+> embeds the whole corpus on every run (no caching) and uses a hard-coded query.
+> It needs `numpy`, `EMBED_MODEL`, `KB_FOLDER`, and the `knowledge_base/` folder
+> (see Prerequisites).
 
 ## Notes
 

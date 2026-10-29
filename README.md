@@ -76,7 +76,9 @@ Python-AI-Agent-Ollama/
 │   ├── stream_test.py           # Streaming a plain text completion
 │   ├── stream_tools_test.py     # Streaming + reassembling tool calls
 │   ├── test_embedding.py        # Embeddings API demo (nomic-embed-text)
-│   └── semantic_search_test.py  # Cosine-similarity semantic search (work in progress)
+│   ├── semantic_search_test.py  # Cosine-similarity semantic search (work in progress)
+│   └── doc_search.py            # Semantic document retrieval over knowledge_base/ (RAG retrieval)
+├── knowledge_base/              # Document corpus (.txt files) for semantic search
 ├── assets/                      # README banner art (animated SVGs)
 │   ├── hero.svg
 │   ├── typing.svg
@@ -99,6 +101,11 @@ Python dependencies (see [`requirements.txt`](requirements.txt)):
 - `python-dotenv`
 - `requests`
 
+> The embedding / document-retrieval experiments in [`Code Snippets/`](Code%20Snippets/)
+> additionally need **`numpy`** (`pip install numpy`) and the `nomic-embed-text`
+> model — see the [Code Snippets README](Code%20Snippets/README.md). The core
+> agent does not require either.
+
 ## 🚀 Setup
 
 **1. Clone and enter the project**
@@ -116,10 +123,11 @@ source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**3. Start Ollama and pull the model** (for the default local setup)
+**3. Start Ollama and pull the model(s)** (for the default local setup)
 
 ```bash
-ollama pull qwen3:4b
+ollama pull qwen3:4b             # chat model (required)
+ollama pull nomic-embed-text     # embedding model (only for the RAG / embedding experiments)
 ollama serve
 ```
 
@@ -136,14 +144,21 @@ BASE_URL=http://127.0.0.1:11434/v1
 API_KEY=dummy
 MODEL=qwen3:4b
 DEBUG=False
+EMBED_MODEL=nomic-embed-text   # only for the RAG / embedding experiments
+KB_FOLDER=knowledge_base       # only for the RAG / embedding experiments
 ```
 
-| Variable   | Description                                                        |
-|------------|--------------------------------------------------------------------|
-| `BASE_URL` | Base URL of the OpenAI-compatible API (note the `/v1`).            |
-| `API_KEY`  | API key. Any non-empty value works for local Ollama.              |
-| `MODEL`    | Model name to use for completions (run `ollama list` for names).   |
-| `DEBUG`    | Set to `True` to print tool calls and results; anything else off. |
+| Variable      | Description                                                        |
+|---------------|--------------------------------------------------------------------|
+| `BASE_URL`    | Base URL of the OpenAI-compatible API (note the `/v1`).           |
+| `API_KEY`     | API key. Any non-empty value works for local Ollama.             |
+| `MODEL`       | Model name to use for completions (run `ollama list` for names).  |
+| `DEBUG`       | Set to `True` to print tool calls and results; anything else off.|
+| `EMBED_MODEL` | Embedding model for the RAG experiments (e.g. `nomic-embed-text`).|
+| `KB_FOLDER`   | Folder of `.txt` documents to index for semantic search.          |
+
+> `EMBED_MODEL` and `KB_FOLDER` are only used by the embedding / document-retrieval
+> snippets in [`Code Snippets/`](Code%20Snippets/); the core agent ignores them.
 
 ## ▶️ Usage
 
@@ -225,9 +240,12 @@ The agent will then be able to call it automatically when relevant.
 
 The [`Code Snippets/`](Code%20Snippets/) folder holds standalone scripts that
 explore the OpenAI-compatible API beyond the main app — **streaming** chat and
-tool calls, plus early **embeddings / semantic search** work using the
-`nomic-embed-text` model (the groundwork for RAG). They are learning/reference
-snippets — nothing in the main app imports them. See the
+tool calls, plus **embeddings / semantic search** using the `nomic-embed-text`
+model. This builds up to [`doc_search.py`](Code%20Snippets/doc_search.py), a
+runnable **semantic document-retrieval** pipeline over the
+[`knowledge_base/`](knowledge_base/) corpus (load → embed → cosine-rank a query →
+top-k) — the retrieval half of RAG. They are learning/reference snippets —
+nothing in the main app imports them (yet). See the
 [Code Snippets README](Code%20Snippets/README.md) for details.
 
 ## 📝 Notes

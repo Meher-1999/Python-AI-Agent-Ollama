@@ -77,12 +77,14 @@ Python-AI-Agent-Ollama/
 │   ├── stream_tools_test.py     # Streaming + reassembling tool calls
 │   ├── test_embedding.py        # Embeddings API demo (nomic-embed-text)
 │   ├── semantic_search_test.py  # Cosine-similarity semantic search (work in progress)
-│   └── doc_search.py            # Semantic document retrieval over knowledge_base/ (RAG retrieval)
-├── knowledge_base/              # Document corpus (.txt files) for semantic search
+│   ├── doc_search.py            # Semantic document retrieval over knowledge_base/ (RAG retrieval)
+│   └── chunk_search.py          # Chunked retrieval + persistent vector-store cache (RAG retrieval)
+├── knowledge_base/              # Document corpus (.txt) + generated vector_store.json cache
 ├── assets/                      # README banner art (animated SVGs)
 │   ├── hero.svg
 │   ├── typing.svg
 │   └── footer.svg
+├── .claude/                     # Claude Code config + README-reminder hook
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Template for your local .env
 ├── .gitignore                   # Ignores .env, .venv, caches, OS files
@@ -146,6 +148,7 @@ MODEL=qwen3:4b
 DEBUG=False
 EMBED_MODEL=nomic-embed-text   # only for the RAG / embedding experiments
 KB_FOLDER=knowledge_base       # only for the RAG / embedding experiments
+VECTOR_STORE_FILE=knowledge_base/vector_store.json  # only for chunk_search.py (embedded-chunk cache)
 ```
 
 | Variable      | Description                                                        |
@@ -156,9 +159,11 @@ KB_FOLDER=knowledge_base       # only for the RAG / embedding experiments
 | `DEBUG`       | Set to `True` to print tool calls and results; anything else off.|
 | `EMBED_MODEL` | Embedding model for the RAG experiments (e.g. `nomic-embed-text`).|
 | `KB_FOLDER`   | Folder of `.txt` documents to index for semantic search.          |
+| `VECTOR_STORE_FILE` | JSON file where `chunk_search.py` caches embedded chunks.   |
 
-> `EMBED_MODEL` and `KB_FOLDER` are only used by the embedding / document-retrieval
-> snippets in [`Code Snippets/`](Code%20Snippets/); the core agent ignores them.
+> `EMBED_MODEL`, `KB_FOLDER`, and `VECTOR_STORE_FILE` are only used by the
+> embedding / document-retrieval snippets in [`Code Snippets/`](Code%20Snippets/);
+> the core agent ignores them.
 
 ## ▶️ Usage
 
@@ -241,11 +246,14 @@ The agent will then be able to call it automatically when relevant.
 The [`Code Snippets/`](Code%20Snippets/) folder holds standalone scripts that
 explore the OpenAI-compatible API beyond the main app — **streaming** chat and
 tool calls, plus **embeddings / semantic search** using the `nomic-embed-text`
-model. This builds up to [`doc_search.py`](Code%20Snippets/doc_search.py), a
-runnable **semantic document-retrieval** pipeline over the
-[`knowledge_base/`](knowledge_base/) corpus (load → embed → cosine-rank a query →
-top-k) — the retrieval half of RAG. They are learning/reference snippets —
-nothing in the main app imports them (yet). See the
+model. This builds up to a runnable **semantic document-retrieval** pipeline over
+the [`knowledge_base/`](knowledge_base/) corpus (load → embed → cosine-rank a
+query → top-k) — the retrieval half of RAG — in
+[`doc_search.py`](Code%20Snippets/doc_search.py), and then
+[`chunk_search.py`](Code%20Snippets/chunk_search.py), which adds **chunking**
+(rank passages, not whole files) and a **persistent vector store** that caches
+embedded chunks to disk so they aren't recomputed each run. They are
+learning/reference snippets — nothing in the main app imports them (yet). See the
 [Code Snippets README](Code%20Snippets/README.md) for details.
 
 ## 📝 Notes

@@ -14,6 +14,7 @@ runtime — nothing in the main app imports them.
 | [`test_embedding.py`](test_embedding.py) | Calling the embeddings API (`nomic-embed-text`) on a few sentences and printing a preview of each vector. |
 | [`semantic_search_test.py`](semantic_search_test.py) | Embedding texts and comparing them with cosine similarity — the core idea behind semantic search / RAG retrieval *(work in progress)*. |
 | [`doc_search.py`](doc_search.py) | A full **semantic document search** pipeline over the [`knowledge_base/`](../knowledge_base/) corpus: load docs → embed → cosine-rank a query → return top-k matches (the retrieval half of RAG). |
+| [`chunk_search.py`](chunk_search.py) | `doc_search.py` upgraded with **chunking** (split each doc into sections) and a **persistent vector store** (cache embedded chunks to a JSON file, skip re-embedding on reruns). |
 
 ## Prerequisites
 
@@ -22,19 +23,24 @@ These scripts reuse the main project's configuration and dependencies:
 - Python 3.11+ (developed on 3.14)
 - Packages: `openai`, `python-dotenv` (installed in the project's `.venv`). The
   embedding snippets (`test_embedding.py`, `semantic_search_test.py`,
-  `doc_search.py`) also need **`numpy`** — `pip install numpy`.
+  `doc_search.py`, `chunk_search.py`) also need **`numpy`** — `pip install numpy`.
 - A running OpenAI-compatible endpoint (local Ollama by default). The embedding
   snippets need the embedding model pulled: `ollama pull nomic-embed-text`.
-- For `doc_search.py`: the document corpus in [`../knowledge_base/`](../knowledge_base/)
-  (a folder of `.txt` files) and the `KB_FOLDER` env var pointing at it.
+- For `doc_search.py` / `chunk_search.py`: the document corpus in
+  [`../knowledge_base/`](../knowledge_base/) (a folder of `.txt` files) and the
+  `KB_FOLDER` env var pointing at it.
+- For `chunk_search.py` only: a `VECTOR_STORE_FILE` env var naming the JSON file
+  where embedded chunks are cached (e.g. `knowledge_base/vector_store.json`). It is
+  created on first run and reused afterwards; delete it to force a re-embed.
 - A `.env` file **in the project root** (`../.env`) with:
 
   ```ini
   BASE_URL=http://127.0.0.1:11434/v1
   API_KEY=dummy_key
   MODEL=qwen3:4b
-  EMBED_MODEL=nomic-embed-text   # used by the embedding snippets
-  KB_FOLDER=knowledge_base       # corpus folder, used by doc_search.py
+  EMBED_MODEL=nomic-embed-text    # used by the embedding snippets
+  KB_FOLDER=knowledge_base        # corpus folder, used by doc_search.py / chunk_search.py
+  VECTOR_STORE_FILE=knowledge_base/vector_store.json  # embedded-chunk cache, used by chunk_search.py
   ```
 
 > **Important — run from the project root.** Both scripts call `load_dotenv()`,
@@ -51,6 +57,7 @@ These scripts reuse the main project's configuration and dependencies:
 > python "Code Snippets/test_embedding.py"
 > python "Code Snippets/semantic_search_test.py"
 > python "Code Snippets/doc_search.py"
+> python "Code Snippets/chunk_search.py"
 > ```
 
 ## `stream_test.py`
@@ -161,6 +168,33 @@ runs before feeding the top matches to the chat model. This snippet does the
 > embeds the whole corpus on every run (no caching) and uses a hard-coded query.
 > It needs `numpy`, `EMBED_MODEL`, `KB_FOLDER`, and the `knowledge_base/` folder
 > (see Prerequisites).
+
+## `chunk_search.py`
+
+`doc_search.py` taken two steps further — the most complete RAG retrieval snippet
+here. It adds **chunking** and a **persistent vector store** on top of the same
+load → embed → cosine-rank → top-k flow.
+
+What's new vs. `doc_search.py`:
+
+1. **Chunking** — `chunk_document(document)` splits a document on blank lines
+   (`\n\n`) into sections, one section per chunk, each tagged with `source` and a
+   `chunk_id`. `create_chunks()` runs it over the whole corpus. Retrieval then
+   ranks **chunks** instead of whole documents, so a hit points at the exact
+   passage (and `search()` returns `chunk_id`).
+2. **Persistent vector store** — `save_vector_store()` / `load_vector_store()`
+   write the embedded chunks to the JSON file named by `VECTOR_STORE_FILE`. On
+   startup the script loads that cache if it exists, and only otherwise chunks,
+   embeds, and saves — so embeddings are computed **once**, not on every run.
+
+**Key idea:** chunking sharpens retrieval (match a paragraph, not a whole file),
+and caching the embeddings to disk turns a slow re-embed into a fast load — the
+two upgrades that move a toy retriever toward a practical RAG index.
+
+> **Standalone for now.** Like `doc_search.py`, it isn't imported by the main app
+> and uses a hard-coded query. It needs `numpy`, `EMBED_MODEL`, `KB_FOLDER`,
+> **`VECTOR_STORE_FILE`**, and the `knowledge_base/` folder (see Prerequisites).
+> The generated `VECTOR_STORE_FILE` is a build artifact — consider git-ignoring it.
 
 ## Notes
 

@@ -57,6 +57,13 @@ model, so it runs **fully offline with no API costs and no agent framework**.
   | `get_current_time` | Current date/time for any IANA timezone. |
   | `get_city_weather` | Current weather for a city (via [wttr.in](https://wttr.in)). |
   | `get_user_city` | The user's home city, for "weather at my place"-style questions. |
+  | `search_knowledge_base` | Retrieves the most relevant passages from the company **knowledge base** (RAG). |
+- **📚 RAG over a knowledge base** — for company/policy questions (leave, medical,
+  HR, hiring, tech, incidents, travel), the model calls `search_knowledge_base`,
+  which embeds the query and returns the best-matching chunks from
+  [`knowledge_base/`](knowledge_base/) via [`rag.py`](rag.py). The agent answers
+  **grounded in those passages, with citations** (e.g. `(leave_policy.txt #3)`),
+  and says it can't find the answer rather than guessing.
 - **🔗 Chained tool calls** — the model can call several tools across up to
   `MAX_STEPS` (5) rounds to resolve one question (e.g. look up your city, *then*
   fetch its weather).
@@ -68,7 +75,8 @@ model, so it runs **fully offline with no API costs and no agent framework**.
 ```
 Python-AI-Agent-Ollama/
 ├── simple_ai_assistant.py       # Entry point: chat loop + streaming tool-calling orchestration
-├── tools.py                     # Tool definitions, implementations, and dispatch
+├── tools.py                     # Tool definitions + dispatch (incl. search_knowledge_base)
+├── rag.py                       # RAG retrieval: chunk + embed + cache + cosine search over knowledge_base/
 ├── Utilities/
 │   └── utilities.py             # Debug logging helper (gray DEBUG trace)
 ├── Code Snippets/               # Standalone experiments — streaming & embeddings (see its README)
@@ -79,7 +87,7 @@ Python-AI-Agent-Ollama/
 │   ├── semantic_search_test.py  # Cosine-similarity semantic search (work in progress)
 │   ├── doc_search.py            # Semantic document retrieval over knowledge_base/ (RAG retrieval)
 │   └── chunk_search.py          # Chunked retrieval + persistent vector-store cache (RAG retrieval)
-├── knowledge_base/              # Document corpus (.txt) + generated vector_store.json cache
+├── knowledge_base/              # Company knowledge base the agent retrieves from (.txt) + vector_store.json cache
 ├── assets/                      # README banner art (animated SVGs)
 │   ├── hero.svg
 │   ├── typing.svg
@@ -102,11 +110,12 @@ Python dependencies (see [`requirements.txt`](requirements.txt)):
 - `openai`
 - `python-dotenv`
 - `requests`
+- `numpy` — used by the RAG retrieval module [`rag.py`](rag.py)
 
-> The embedding / document-retrieval experiments in [`Code Snippets/`](Code%20Snippets/)
-> additionally need **`numpy`** (`pip install numpy`) and the `nomic-embed-text`
-> model — see the [Code Snippets README](Code%20Snippets/README.md). The core
-> agent does not require either.
+> **RAG needs an embedding model.** The agent's `search_knowledge_base` tool
+> imports [`rag.py`](rag.py), so running the agent also requires the
+> `nomic-embed-text` model (`ollama pull nomic-embed-text`) and the
+> `EMBED_MODEL` / `KB_FOLDER` / `VECTOR_STORE_FILE` settings (see Setup).
 
 ## 🚀 Setup
 
@@ -129,7 +138,7 @@ pip install -r requirements.txt
 
 ```bash
 ollama pull qwen3:4b             # chat model (required)
-ollama pull nomic-embed-text     # embedding model (only for the RAG / embedding experiments)
+ollama pull nomic-embed-text     # embedding model (required for RAG / search_knowledge_base)
 ollama serve
 ```
 
@@ -146,9 +155,9 @@ BASE_URL=http://127.0.0.1:11434/v1
 API_KEY=dummy
 MODEL=qwen3:4b
 DEBUG=False
-EMBED_MODEL=nomic-embed-text   # only for the RAG / embedding experiments
-KB_FOLDER=knowledge_base       # only for the RAG / embedding experiments
-VECTOR_STORE_FILE=knowledge_base/vector_store.json  # only for chunk_search.py (embedded-chunk cache)
+EMBED_MODEL=nomic-embed-text   # embedding model for RAG (search_knowledge_base)
+KB_FOLDER=knowledge_base       # company knowledge-base corpus the agent retrieves from
+VECTOR_STORE_FILE=knowledge_base/vector_store.json  # embedded-chunk cache for RAG
 ```
 
 | Variable      | Description                                                        |
@@ -157,13 +166,12 @@ VECTOR_STORE_FILE=knowledge_base/vector_store.json  # only for chunk_search.py (
 | `API_KEY`     | API key. Any non-empty value works for local Ollama.             |
 | `MODEL`       | Model name to use for completions (run `ollama list` for names).  |
 | `DEBUG`       | Set to `True` to print tool calls and results; anything else off.|
-| `EMBED_MODEL` | Embedding model for the RAG experiments (e.g. `nomic-embed-text`).|
-| `KB_FOLDER`   | Folder of `.txt` documents to index for semantic search.          |
-| `VECTOR_STORE_FILE` | JSON file where `chunk_search.py` caches embedded chunks.   |
+| `EMBED_MODEL` | Embedding model for RAG, used by `search_knowledge_base` (e.g. `nomic-embed-text`). |
+| `KB_FOLDER`   | Folder of `.txt` documents the agent retrieves from (the knowledge base). |
+| `VECTOR_STORE_FILE` | JSON file where embedded chunks are cached for RAG. |
 
-> `EMBED_MODEL`, `KB_FOLDER`, and `VECTOR_STORE_FILE` are only used by the
-> embedding / document-retrieval snippets in [`Code Snippets/`](Code%20Snippets/);
-> the core agent ignores them.
+> `EMBED_MODEL`, `KB_FOLDER`, and `VECTOR_STORE_FILE` are **required by the agent's
+> RAG tool** (`search_knowledge_base` → [`rag.py`](rag.py)) — set them in your `.env`.
 
 ## ▶️ Usage
 
@@ -180,9 +188,18 @@ Then chat at the prompt:
 👦🏻 User: how's the weather where I live?
 🤖 Assistant: Los Angeles: ☀️ +24°C
 
+👦🏻 User: what are the maternity benefits at my company?
+🤖 Assistant: Zorvex offers 26 weeks of paid maternity leave (leave_policy.txt #3) and
+   hospitalization cover up to ₹75,000 for childbirth after 9 months of service
+   (medical_policy.txt #3).
+
 👦🏻 User: exit
 Exiting the assistant. Goodbye!
 ```
+
+The last answer is **RAG in action**: the model called `search_knowledge_base`,
+retrieved the relevant chunks from [`knowledge_base/`](knowledge_base/), and
+answered grounded in them with citations.
 
 Replies stream in live as the model generates them. Type `exit`, `quit`, `bye`,
 or `goodbye` to leave, or press **Ctrl+C** to interrupt a reply that's streaming.
@@ -243,18 +260,15 @@ The agent will then be able to call it automatically when relevant.
 
 ## 🧪 Experiments
 
-The [`Code Snippets/`](Code%20Snippets/) folder holds standalone scripts that
-explore the OpenAI-compatible API beyond the main app — **streaming** chat and
-tool calls, plus **embeddings / semantic search** using the `nomic-embed-text`
-model. This builds up to a runnable **semantic document-retrieval** pipeline over
-the [`knowledge_base/`](knowledge_base/) corpus (load → embed → cosine-rank a
-query → top-k) — the retrieval half of RAG — in
-[`doc_search.py`](Code%20Snippets/doc_search.py), and then
-[`chunk_search.py`](Code%20Snippets/chunk_search.py), which adds **chunking**
-(rank passages, not whole files) and a **persistent vector store** that caches
-embedded chunks to disk so they aren't recomputed each run. They are
-learning/reference snippets — nothing in the main app imports them (yet). See the
-[Code Snippets README](Code%20Snippets/README.md) for details.
+The [`Code Snippets/`](Code%20Snippets/) folder holds the standalone scripts that
+led to RAG — **streaming** chat/tool calls, then **embeddings / semantic search**:
+`test_embedding.py` → `semantic_search_test.py` →
+[`doc_search.py`](Code%20Snippets/doc_search.py) (retrieve whole docs) →
+[`chunk_search.py`](Code%20Snippets/chunk_search.py) (chunking + a persistent
+vector store). That pipeline graduated into [`rag.py`](rag.py) at the project
+root, which the agent now uses in production through the `search_knowledge_base`
+tool (see **Features**). The snippets remain as learning/reference material — see
+the [Code Snippets README](Code%20Snippets/README.md) for details.
 
 ## 📝 Notes
 

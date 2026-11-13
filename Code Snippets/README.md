@@ -200,5 +200,8 @@ two upgrades that move a toy retriever toward a practical RAG index.
 
 - These are experiments, not tested utilities — expect to tweak the hard-coded
   prompts while exploring.
+- **`chunk_search.py` graduated into [`../rag.py`](../rag.py)** — the production
+  retrieval module the agent imports for its `search_knowledge_base` tool (RAG).
+  These snippets stay as the learning path that led there.
 - For the full, interactive assistant (non-streaming, with tool execution and
   chained tool calls), see the [project README](../README.md).

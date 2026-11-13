@@ -15,6 +15,7 @@ runtime — nothing in the main app imports them.
 | [`semantic_search_test.py`](semantic_search_test.py) | Embedding texts and comparing them with cosine similarity — the core idea behind semantic search / RAG retrieval *(work in progress)*. |
 | [`doc_search.py`](doc_search.py) | A full **semantic document search** pipeline over the [`knowledge_base/`](../knowledge_base/) corpus: load docs → embed → cosine-rank a query → return top-k matches (the retrieval half of RAG). |
 | [`chunk_search.py`](chunk_search.py) | `doc_search.py` upgraded with **chunking** (split each doc into sections) and a **persistent vector store** (cache embedded chunks to a JSON file, skip re-embedding on reruns). |
+| [`chroma_simple.py`](chroma_simple.py) | A minimal **[Chroma](https://www.trychroma.com/) vector-DB** demo: embed sample chunks with Ollama, `upsert` them into a **persistent** Chroma collection (cosine), and `query` it — the same retrieval idea backed by a real vector DB instead of hand-rolled cosine. |
 
 ## Prerequisites
 
@@ -32,6 +33,10 @@ These scripts reuse the main project's configuration and dependencies:
 - For `chunk_search.py` only: a `VECTOR_STORE_FILE` env var naming the JSON file
   where embedded chunks are cached (e.g. `knowledge_base/vector_store.json`). It is
   created on first run and reused afterwards; delete it to force a re-embed.
+- For `chroma_simple.py`: the **`chromadb`** package (`pip install chromadb`). It
+  uses a persistent Chroma client that writes to `./chromadbStorage` (git-ignored)
+  and inline sample chunks, so it needs only `EMBED_MODEL` (no `numpy`, `KB_FOLDER`,
+  or `VECTOR_STORE_FILE`).
 - A `.env` file **in the project root** (`../.env`) with:
 
   ```ini
@@ -58,6 +63,7 @@ These scripts reuse the main project's configuration and dependencies:
 > python "Code Snippets/semantic_search_test.py"
 > python "Code Snippets/doc_search.py"
 > python "Code Snippets/chunk_search.py"
+> python "Code Snippets/chroma_simple.py"
 > ```
 
 ## `stream_test.py`
@@ -195,6 +201,33 @@ two upgrades that move a toy retriever toward a practical RAG index.
 > and uses a hard-coded query. It needs `numpy`, `EMBED_MODEL`, `KB_FOLDER`,
 > **`VECTOR_STORE_FILE`**, and the `knowledge_base/` folder (see Prerequisites).
 > The generated `VECTOR_STORE_FILE` is a build artifact — consider git-ignoring it.
+
+## `chroma_simple.py`
+
+The same retrieval idea as the earlier snippets, but backed by a real **vector
+database** ([Chroma](https://www.trychroma.com/)) instead of hand-rolled cosine —
+a preview of moving the agent's RAG onto a vector DB.
+
+How it works:
+
+1. Embeds a handful of **inline** sample chunks with Ollama's `EMBED_MODEL`
+   (`get_embedding`), so Chroma stores *your* vectors rather than its default embedder.
+2. Opens a **persistent** client — `chromadb.PersistentClient(path="./chromadbStorage")`
+   — and `get_or_create_collection(name="zorvex_technology", configuration={"hnsw": {"space": "cosine"}})`.
+3. `collection.upsert(ids, documents, embeddings=...)` loads the chunks (upsert =
+   update if the id already exists, else insert — safe to re-run).
+4. Embeds a query and calls `collection.query(query_embeddings=[...], n_results=1)`,
+   then prints the top matching document.
+
+**Key idea:** a vector DB handles storage + nearest-neighbour search for you — you
+`upsert` embedded chunks, then `query` with an embedded question, instead of looping
+cosine similarity by hand (as `chunk_search.py` does). `PersistentClient` writes the
+index to `./chromadbStorage` (a `chroma.sqlite3` + data dir), so it survives reruns.
+
+> **Standalone experiment.** Needs `chromadb` and `EMBED_MODEL`; it uses inline
+> sample chunks, so it doesn't touch `knowledge_base/`. It writes a persistent store
+> to `./chromadbStorage` — a generated artifact, git-ignored. The agent's retrieval
+> ([`../rag.py`](../rag.py)) is separate and still uses the JSON vector store.
 
 ## Notes
 

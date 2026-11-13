@@ -12,7 +12,7 @@ from Utilities.utilities import log
 
 
 
-load_dotenv() #by deafult looks for .env file
+load_dotenv() # by deafult looks for .env file
 
 client = OpenAI(
     base_url=os.getenv("BASE_URL"),

@@ -267,8 +267,13 @@ led to RAG — **streaming** chat/tool calls, then **embeddings / semantic searc
 [`chunk_search.py`](Code%20Snippets/chunk_search.py) (chunking + a persistent
 vector store). That pipeline graduated into [`rag.py`](rag.py) at the project
 root, which the agent now uses in production through the `search_knowledge_base`
-tool (see **Features**). The snippets remain as learning/reference material — see
-the [Code Snippets README](Code%20Snippets/README.md) for details.
+tool (see **Features**). A newer snippet,
+[`chroma_simple.py`](Code%20Snippets/chroma_simple.py), explores backing retrieval
+with the **[Chroma](https://www.trychroma.com/) vector DB** (Ollama embeddings →
+Chroma collection → query) — an experiment, **not yet wired into the agent**
+(`rag.py` still uses the JSON vector store). The snippets remain as
+learning/reference material — see the
+[Code Snippets README](Code%20Snippets/README.md) for details.
 
 ## 📝 Notes
 

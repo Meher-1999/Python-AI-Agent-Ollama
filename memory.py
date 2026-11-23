@@ -37,8 +37,16 @@ def save_chat(path, messages):
 # Load one chat. Returns None if the file is missing, broken or not a chat.
 
 def load_chat(path):
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        # Missing file, permission error, or broken JSON.
+        return None
+
+    # Must look like a chat: a dict with a "messages" list.
+    if not isinstance(data, dict) or not isinstance(data.get("messages"), list):
+        return None
 
     return data
 

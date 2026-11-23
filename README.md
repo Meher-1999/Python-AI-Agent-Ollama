@@ -224,6 +224,43 @@ or `goodbye` to leave, or press **Ctrl+C** to interrupt a reply that's streaming
 On startup you're also offered to resume your most recent chat. Saved chats live
 in `CHAT_FOLDER` (default `chat_history/`), one JSON file each.
 
+**Example — persistent memory across runs & chat commands:**
+
+```text
+# First run — ask something, then leave (the chat is saved automatically)
+👦🏻 User: Explain AWS in 20 words.
+🤖 Assistant: Amazon Web Services (AWS) offers cloud computing services including virtual
+   servers, storage, databases, and machine learning tools for scalable applications.
+👦🏻 User: exit
+Exiting the assistant. Goodbye!
+
+# Next run — the agent offers to resume, and it remembers the earlier turn
+$ python simple_ai_assistant.py
+Loaded 32 chunks from the knowledge_base/vector_store.json
+Continue your last chat "Explain AWS in 20 words."? (y/n): y
+Resumed: Explain AWS in 20 words. (2 messages)
+
+👦🏻 User: Can you tell me what did I ask you in my last message?
+🤖 Assistant: In your last message, you asked: "Explain AWS in 20 words."
+
+# /new starts a fresh chat (the old one stays saved); /chats lists saved chats
+👦🏻 User: /new
+Started a new chat. The old one is still saved.
+👦🏻 User: /chats
+1. Explain AWS in 20 words. — 4 messages (Last updated: 2026-11-23 09:46:48)
+
+👦🏻 User: Explain Kubernetes in 20 words
+🤖 Assistant: Kubernetes is an open-source container orchestration platform that automates the
+   deployment, scaling, and management of containerized applications across distributed systems.
+
+# /resume lists saved chats and reopens the one you pick by number
+👦🏻 User: /resume
+1. Explain Kubernetes in 20 words — 2 messages (Last updated: 2026-11-23 09:50:33)
+2. Explain AWS in 20 words.      — 4 messages (Last updated: 2026-11-23 09:46:48)
+Enter the chat number to resume (Press Enter to cancel): 2
+Resumed: Explain AWS in 20 words. (4 messages)
+```
+
 ## 🔄 Control flow
 
 ```mermaid

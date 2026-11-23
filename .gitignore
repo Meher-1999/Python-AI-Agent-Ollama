@@ -21,3 +21,6 @@ vector_store.json
 
 # Generated Chroma vector DB persistence (chroma_simple.py)
 chromadbStorage/
+
+# Saved conversations / persistent chat memory (may contain chat content)
+chat_history/

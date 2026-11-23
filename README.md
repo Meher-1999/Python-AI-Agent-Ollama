@@ -48,9 +48,14 @@ model, so it runs **fully offline with no API costs and no agent framework**.
 - **⌨️ Streaming replies** — answers are printed **token-by-token as they arrive**
   (via `stream_chat`), for a live typing effect instead of waiting for the full
   response. Press **Ctrl+C** to stop a reply mid-stream and get your prompt back.
-- **🧠 Conversation memory** — the full `messages` history is kept (your messages,
-  the agent's replies, tool calls, and tool results), so the agent remembers
-  earlier turns for context.
+- **🧠 Persistent conversation memory** — the full `messages` history (your
+  messages, the agent's replies, tool calls, and tool results) is kept in-session
+  **and saved to disk after every turn** (one JSON file per chat under
+  `CHAT_FOLDER`, via [`memory.py`](memory.py)). On startup the agent offers to
+  **resume your last chat or pick a previous one**, so conversations persist
+  across runs. In-chat commands manage them mid-session: **`/new`** (start a fresh
+  chat — the old one stays saved), **`/chats`** (list saved chats), and
+  **`/resume`** (pick any past chat by number to continue).
 - **🔧 Tool calling** — the model decides when to call a tool and the agent runs it:
   | Tool | What it does |
   |------|--------------|
@@ -77,6 +82,7 @@ Python-AI-Agent-Ollama/
 ├── simple_ai_assistant.py       # Entry point: chat loop + streaming tool-calling orchestration
 ├── tools.py                     # Tool definitions + dispatch (incl. search_knowledge_base)
 ├── rag.py                       # RAG retrieval: chunk + embed + cache + cosine search over knowledge_base/
+├── memory.py                    # Persistent chat memory: save/load/list conversations as JSON
 ├── Utilities/
 │   └── utilities.py             # Debug logging helper (gray DEBUG trace)
 ├── Code Snippets/               # Standalone experiments — streaming & embeddings (see its README)
@@ -88,6 +94,7 @@ Python-AI-Agent-Ollama/
 │   ├── doc_search.py            # Semantic document retrieval over knowledge_base/ (RAG retrieval)
 │   └── chunk_search.py          # Chunked retrieval + persistent vector-store cache (RAG retrieval)
 ├── knowledge_base/              # Company knowledge base the agent retrieves from (.txt) + vector_store.json cache
+├── chat_history/                # Saved conversations (JSON) — generated, gitignored
 ├── assets/                      # README banner art (animated SVGs)
 │   ├── hero.svg
 │   ├── typing.svg
@@ -158,6 +165,7 @@ DEBUG=False
 EMBED_MODEL=nomic-embed-text   # embedding model for RAG (search_knowledge_base)
 KB_FOLDER=knowledge_base       # company knowledge-base corpus the agent retrieves from
 VECTOR_STORE_FILE=knowledge_base/vector_store.json  # embedded-chunk cache for RAG
+CHAT_FOLDER=chat_history       # folder of saved conversations (persistent chat memory)
 ```
 
 | Variable      | Description                                                        |
@@ -169,6 +177,7 @@ VECTOR_STORE_FILE=knowledge_base/vector_store.json  # embedded-chunk cache for R
 | `EMBED_MODEL` | Embedding model for RAG, used by `search_knowledge_base` (e.g. `nomic-embed-text`). |
 | `KB_FOLDER`   | Folder of `.txt` documents the agent retrieves from (the knowledge base). |
 | `VECTOR_STORE_FILE` | JSON file where embedded chunks are cached for RAG. |
+| `CHAT_FOLDER`   | Folder where conversations are saved/loaded as JSON (persistent chat memory). |
 
 > `EMBED_MODEL`, `KB_FOLDER`, and `VECTOR_STORE_FILE` are **required by the agent's
 > RAG tool** (`search_knowledge_base` → [`rag.py`](rag.py)) — set them in your `.env`.
@@ -203,6 +212,17 @@ answered grounded in them with citations.
 
 Replies stream in live as the model generates them. Type `exit`, `quit`, `bye`,
 or `goodbye` to leave, or press **Ctrl+C** to interrupt a reply that's streaming.
+
+**Chat commands** — type these at the prompt (conversations are saved as you go):
+
+| Command | What it does |
+|---------|--------------|
+| `/new` | Start a fresh chat — the current one is already saved. |
+| `/chats` | List your saved chats (title, message count, last updated). |
+| `/resume` | List saved chats and pick one by number to continue it. |
+
+On startup you're also offered to resume your most recent chat. Saved chats live
+in `CHAT_FOLDER` (default `chat_history/`), one JSON file each.
 
 ## 🔄 Control flow
 
@@ -245,9 +265,12 @@ next input.
    `MAX_STEPS` (5) rounds are used — after which it returns a fallback message.
 5. The streamed answer is kept in history (as `full_response`) for context.
    Press **Ctrl+C** to stop a reply mid-stream.
+6. After each turn the conversation is saved to disk via `save_chat`
+   ([`memory.py`](memory.py)) — one JSON file per chat in `CHAT_FOLDER` — so it can
+   be resumed on a later run (startup prompt) or with `/resume`.
 
-The system prompts keep replies in English and under 100 words — tweak them at
-the top of [`simple_ai_assistant.py`](simple_ai_assistant.py) to change the
+The system prompt (`SYSTEM_MESSAGE`) keeps replies in English and under 100 words —
+tweak it at the top of [`simple_ai_assistant.py`](simple_ai_assistant.py) to change the
 agent's behavior.
 
 ## ➕ Adding a new tool

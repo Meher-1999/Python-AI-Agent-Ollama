@@ -318,6 +318,56 @@ agent's behavior.
 
 The agent will then be able to call it automatically when relevant.
 
+## 📊 Evaluation
+
+[`eval.py`](eval.py) is a small, **read-only** harness that measures the RAG
+pipeline's **retrieval quality** against a labelled question set
+([`eval_set.json`](eval_set.json) — 25 in-knowledge-base questions across the 7
+documents, plus 6 out-of-scope questions). With Ollama running, from the project root:
+
+```bash
+python eval.py
+```
+
+It reports **Recall@1/@2/@3**, **MRR**, **retrieval latency** (p50/p95), and an
+in-KB vs out-of-KB similarity sanity check. Latest run:
+
+| Metric | Result |
+|--------|--------|
+| Recall@2 (the agent's `top_k`) | **100%** |
+| Recall@1 | 96% |
+| MRR | **0.98** |
+| Median retrieval latency | **~26 ms** (p95 ~37 ms) |
+| Relevance (in-KB vs out-of-KB cosine) | 0.78 vs 0.58 |
+
+These are **retrieval** metrics on a small 7-document corpus (not answer-generation
+quality); re-run `eval.py` after changing the corpus, chunking, or embedding model.
+
+## 📊 Evaluation
+
+[`eval.py`](eval.py) is a small, **read-only** harness that measures the RAG
+pipeline's **retrieval quality** against a labelled question set
+([`eval_set.json`](eval_set.json) — 25 in-knowledge-base questions across the 7
+documents, plus 6 out-of-scope questions). With Ollama running, from the project root:
+
+```bash
+python eval.py
+```
+
+It reports **Recall@1/@2/@3**, **MRR**, **retrieval latency** (p50/p95), and an
+in-KB vs out-of-KB similarity sanity check. Latest run:
+
+| Metric | Result |
+|--------|--------|
+| Recall@2 (the agent's `top_k`) | **100%** |
+| Recall@1 | 96% |
+| MRR | **0.98** |
+| Median retrieval latency | **~26 ms** (p95 ~37 ms) |
+| Relevance (in-KB vs out-of-KB cosine) | 0.78 vs 0.58 |
+
+These are **retrieval** metrics on a small 7-document corpus (not answer-generation
+quality); re-run `eval.py` after changing the corpus, chunking, or embedding model.
+
 ## 🧪 Experiments
 
 The [`Code Snippets/`](Code%20Snippets/) folder holds the standalone scripts that

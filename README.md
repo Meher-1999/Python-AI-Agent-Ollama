@@ -265,23 +265,31 @@ Resumed: Explain AWS in 20 words. (4 messages)
 
 ```mermaid
 flowchart TD
-    START([Start]) --> INIT[Initialize<br/>OpenAI client, system prompts,<br/>TOOLS &amp; function mapping]
-    INIT --> LOOP[Start chat loop]
+    START([Start]) --> INIT["Initialize: OpenAI client, SYSTEM_MESSAGE,<br/>TOOLS &amp; function map, load vector store (rag.py)"]
+    INIT --> RESUME{"Saved chats found?"}
+    RESUME -->|Resume last / pick one| LOAD["load_chat &rarr; messages =<br/>SYSTEM_MESSAGE + saved turns"]
+    RESUME -->|Start new| NEW["messages = [SYSTEM_MESSAGE]"]
+    LOAD --> LOOP[Start chat loop]
+    NEW --> LOOP
     LOOP --> INPUT["Get user input<br/>(User: prompt)"]
-    INPUT --> EXIT{"Exit command?<br/>(exit, quit, bye, goodbye)"}
+    INPUT --> EXIT{"Exit?<br/>(exit / quit / bye / goodbye)"}
     EXIT -->|Yes| DONE([Exit])
-    EXIT -->|No| APPEND[Append user message to history]
-    APPEND --> CALL[Call model with TOOLS<br/>client.chat.completions.create]
-    CALL --> TOOLS{"Any tool calls?<br/>(msg.tool_calls)"}
-    TOOLS -->|Yes| ATOOL[Append assistant message<br/>with tool calls]
-    ATOOL --> RUN[For each tool call:<br/>run_tool &rarr; execute mapped function<br/>get_current_time / get_city_weather / get_user_city]
-    RUN --> ARES[Append tool result to history]
+    EXIT -->|No| CMD{"Slash command?<br/>/new, /chats, /resume"}
+    CMD -->|Yes| HANDLE["Start new / list / resume a saved chat"] --> INPUT
+    CMD -->|No| APPEND[Append user message to history]
+    APPEND --> CALL["stream_chat: call model with TOOLS<br/>(stream=True, token-by-token)"]
+    CALL --> TOOLS{"Any tool calls?"}
+    TOOLS -->|Yes| ATOOL[Append assistant message with tool calls]
+    ATOOL --> RUN["For each tool call: run_tool &rarr;<br/>get_current_time / get_city_weather /<br/>get_user_city / search_knowledge_base"]
+    RUN -. "search_knowledge_base" .-> RAG["rag.search: embed query +<br/>cosine top-k over knowledge_base/ (RAG)"]
+    RUN --> ARES[Append tool results to history]
+    RAG --> ARES
     ARES --> CALL
-    TOOLS -->|No| AMSG[Append assistant message to history]
-    AMSG --> PRINT["Print assistant response<br/>(Assistant: + content)"]
-    PRINT --> INPUT
-    CALL -. step limit reached<br/>MAX_STEPS = 5 .-> FALLBACK[Print fallback message]
-    FALLBACK --> INPUT
+    TOOLS -->|No| AMSG[Append assistant reply to history]
+    AMSG --> SAVE["save_chat &rarr; chat_history/*.json<br/>(persist conversation)"]
+    SAVE --> INPUT
+    CALL -. "step limit reached (MAX_STEPS = 5)" .-> FALLBACK[Print fallback message]
+    FALLBACK --> SAVE
 ```
 
 The model/tool loop (`Call model` → `Any tool calls?` → run tools → call again) repeats
